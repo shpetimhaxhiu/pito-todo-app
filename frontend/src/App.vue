@@ -12,6 +12,12 @@
         <div class="form-group">
           <input v-model="newTodo.status" placeholder="Status" class="input" disabled />
         </div>
+        <div class="form-group">
+          <input v-model="newTodo.start_time" type="datetime-local" placeholder="Start Time" class="input" />
+        </div>
+        <div class="form-group">
+          <input v-model="newTodo.end_time" type="datetime-local" placeholder="End Time" class="input" />
+        </div>
         <button type="submit" class="submit-button">Add TODO</button>
       </form>
       <form v-if="editMode" @submit.prevent="updateTodo" class="form">
@@ -24,13 +30,23 @@
         <div class="form-group">
           <input v-model="currentTodo.status" placeholder="Status" class="input" disabled />
         </div>
+        <div class="form-group">
+          <input v-model="currentTodo.start_time" type="datetime-local" placeholder="Start Time" class="input" />
+        </div>
+        <div class="form-group">
+          <input v-model="currentTodo.end_time" type="datetime-local" placeholder="End Time" class="input" />
+        </div>
         <button type="submit" class="update-button">Update TODO</button>
       </form>
       <ul>
         <li v-for="todo in todos" :key="todo.id" class="todo-item">
           <div class="todo-title">{{ todo.title }}</div>
           <div class="todo-deadline">{{ todo.deadline }}</div>
-          <div :class="{'status-overdue': todo.status == 'Overdue', 'status-due-soon': todo.status == 'Due Soon', 'status-completed': todo.status == 'Completed'}" class="status">{{ todo.status }}</div>
+          <div
+            :class="{ 'status-overdue': todo.status == 'Overdue', 'status-due-soon': todo.status == 'Due Soon', 'status-completed': todo.status == 'Completed' }"
+            class="status">{{ todo.status }}</div>
+          <div class="todo-start-time">{{ todo.start_time }}</div>
+          <div class="todo-end-time">{{ todo.end_time }}</div>
           <div>
             <button @click="editTodo(todo)" class="edit-button">Edit</button>
             <button @click="deleteTodo(todo.id)" class="delete-button">Delete</button>
@@ -40,7 +56,6 @@
     </div>
   </div>
 </template>
-
 
 <script>
 import axios from 'axios';
@@ -73,10 +88,12 @@ export default {
     },
     async addTodo() {
       this.newTodo.id = Date.now();
+      this.newTodo.start_time = new Date().toISOString();
+      this.newTodo.end_time = null;
       await axios.post('/todo/', this.newTodo);
       this.todos.push({ ...this.newTodo });
       this.newTodo.title = '';
-      this.newTodo.deadline = 
+      this.newTodo.deadline = '';
       this.newTodo.status = '';
     },
     async updateTodo() {
@@ -90,7 +107,11 @@ export default {
       this.todos = this.todos.filter((todo) => todo.id !== id);
     },
     editTodo(todo) {
-      this.currentTodo = { ...todo };
+      this.currentTodo = {
+        ...todo,
+        start_time: todo.start_time ? new Date(todo.start_time).toISOString() : null,
+        end_time: todo.end_time ? new Date(todo.end_time).toISOString() : null,
+      };
       this.editMode = true;
     },
   },
@@ -251,6 +272,4 @@ export default {
 .delete-button:hover {
   opacity: 0.9;
 }
-
-
 </style>
